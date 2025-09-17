@@ -11,6 +11,7 @@ import {
 import { hasValue, isRectangleCornerRadii } from "~/utils/identity.js";
 import { generateVarId } from "~/utils/common.js";
 import type { Node as FigmaDocumentNode } from "@figma/rest-api-spec";
+import { isFrame, isLayout } from "~/utils/identity.js";
 
 /**
  * Helper function to find or create a global variable.
@@ -131,6 +132,60 @@ export const visualsExtractor: ExtractorFn = (node, result, context) => {
 };
 
 /**
+ * Extracts absolute geometry bounds from a node.
+ */
+export const geometryExtractor: ExtractorFn = (node, result, _context) => {
+  // absoluteBoundingBox
+  if (
+    "absoluteBoundingBox" in node &&
+    node.absoluteBoundingBox &&
+    typeof node.absoluteBoundingBox.x === "number"
+  ) {
+    const { x, y, width, height } = node.absoluteBoundingBox as {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
+    result.absoluteBoundingBox = { x, y, width, height };
+    result.leftAbsolute = x;
+    result.topAbsolute = y;
+  }
+
+  // absoluteRenderBounds
+  if (
+    "absoluteRenderBounds" in node &&
+    node.absoluteRenderBounds &&
+    typeof node.absoluteRenderBounds.x === "number"
+  ) {
+    const { x, y, width, height } = node.absoluteRenderBounds as {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
+    result.absoluteRenderBounds = { x, y, width, height };
+  }
+};
+
+/**
+ * Extracts top/left relative to parent for absolutely positioned nodes inside frames.
+ */
+export const positionExtractor: ExtractorFn = (node, result, context) => {
+  const parent = context.parent;
+  if (!parent) return;
+  if (!isLayout(node) || !isLayout(parent)) return;
+
+  // Compute position relative to parent frame (matches Figma X/Y shown in inspector)
+  if (parent.absoluteBoundingBox && node.absoluteBoundingBox) {
+    const left = node.absoluteBoundingBox.x - parent.absoluteBoundingBox.x;
+    const top = node.absoluteBoundingBox.y - parent.absoluteBoundingBox.y;
+    result.left = Math.round(left);
+    result.top = Math.round(top);
+  }
+};
+
+/**
  * Extracts component-related properties from INSTANCE nodes.
  */
 export const componentExtractor: ExtractorFn = (node, result, _context) => {
@@ -175,7 +230,14 @@ function getStyleName(
 /**
  * All extractors - replicates the current parseNode behavior.
  */
-export const allExtractors = [layoutExtractor, textExtractor, visualsExtractor, componentExtractor];
+export const allExtractors = [
+  layoutExtractor,
+  textExtractor,
+  visualsExtractor,
+  componentExtractor,
+  geometryExtractor,
+  positionExtractor,
+];
 
 /**
  * Layout and text only - useful for content analysis and layout planning.

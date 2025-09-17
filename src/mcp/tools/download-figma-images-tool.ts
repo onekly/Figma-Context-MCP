@@ -179,7 +179,7 @@ async function downloadFigmaImages(params: DownloadImagesParams, figmaService: F
 
 // Export tool configuration
 export const downloadFigmaImagesTool = {
-  name: "download_figma_images",
+  name: "download_figma_images-dev",
   description:
     "Download SVG and PNG images used in a Figma file based on the IDs of image or icon nodes",
   parameters,

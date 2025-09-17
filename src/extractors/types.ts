@@ -30,6 +30,7 @@ export interface TraversalContext {
 export interface TraversalOptions {
   maxDepth?: number;
   nodeFilter?: (node: FigmaDocumentNode) => boolean;
+  includeHidden?: boolean;
 }
 
 /**
@@ -59,6 +60,15 @@ export interface SimplifiedNode {
   id: string;
   name: string;
   type: string; // e.g. FRAME, TEXT, INSTANCE, RECTANGLE, etc.
+  // geometry
+  absoluteBoundingBox?: BoundingBox;
+  absoluteRenderBounds?: BoundingBox;
+  // canvas-absolute position
+  leftAbsolute?: number;
+  topAbsolute?: number;
+  // position relative to parent (when not in auto-layout flow)
+  left?: number;
+  top?: number;
   // text
   text?: string;
   textStyle?: string;

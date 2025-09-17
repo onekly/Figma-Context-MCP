@@ -93,8 +93,8 @@ function processNodeWithExtractors(
  * Determine if a node should be processed based on filters.
  */
 function shouldProcessNode(node: FigmaDocumentNode, options: TraversalOptions): boolean {
-  // Skip invisible nodes
-  if (!isVisible(node)) {
+  // Skip invisible nodes unless includeHidden is set
+  if (!options.includeHidden && !isVisible(node)) {
     return false;
   }
 

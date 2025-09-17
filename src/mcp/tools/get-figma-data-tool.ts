@@ -23,7 +23,11 @@ const parameters = {
     .describe(
       "OPTIONAL. Do NOT use unless explicitly requested by the user. Controls how many levels deep to traverse the node tree.",
     ),
-};
+  includeHidden: z
+    .boolean()
+    .optional()
+    .describe("Include hidden nodes in the traversal output (defaults to false)"),
+} as const;
 
 const parametersSchema = z.object(parameters);
 export type GetFigmaDataParams = z.infer<typeof parametersSchema>;
@@ -35,7 +39,7 @@ async function getFigmaData(
   outputFormat: "yaml" | "json",
 ) {
   try {
-    const { fileKey, nodeId, depth } = params;
+    const { fileKey, nodeId, depth, includeHidden } = params;
 
     Logger.log(
       `Fetching ${depth ? `${depth} layers deep` : "all layers"} of ${
@@ -52,9 +56,14 @@ async function getFigmaData(
     }
 
     // Use unified design extraction (handles nodes + components consistently)
-    const simplifiedDesign = simplifyRawFigmaObject(rawApiResponse, allExtractors, {
-      maxDepth: depth,
-    });
+    const simplifiedDesign = simplifyRawFigmaObject(
+      rawApiResponse,
+      allExtractors,
+      {
+        maxDepth: depth,
+        includeHidden: includeHidden ?? false,
+      },
+    );
 
     writeLogs("figma-simplified.json", simplifiedDesign);
 
@@ -91,7 +100,7 @@ async function getFigmaData(
 
 // Export tool configuration
 export const getFigmaDataTool = {
-  name: "get_figma_data",
+  name: "get_figma_data-dev",
   description:
     "Get comprehensive Figma file data including layout, content, visuals, and component information",
   parameters,

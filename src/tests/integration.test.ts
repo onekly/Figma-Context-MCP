@@ -62,7 +62,7 @@ describe("Figma MCP Server Tests", () => {
         {
           method: "tools/call",
           params: {
-            name: "get_figma_data",
+            name: "get_figma_data-dev",
             arguments: args,
           },
         },
@@ -73,6 +73,35 @@ describe("Figma MCP Server Tests", () => {
       const parsed = yaml.load(content);
 
       expect(parsed).toBeDefined();
+    }, 60000);
+
+    it("should include absoluteBoundingBox and top/left for node when applicable", async () => {
+      const args: any = {
+        fileKey: process.env.FIGMA_FILE_KEY,
+        nodeId: process.env.FIGMA_NODE_ID,
+      };
+
+      const result = await client.request(
+        {
+          method: "tools/call",
+          params: {
+            name: "get_figma_data-dev",
+            arguments: args,
+          },
+        },
+        CallToolResultSchema,
+      );
+
+      const content = result.content[0].text as string;
+      const parsed: any = yaml.load(content);
+      expect(parsed).toBeDefined();
+      const rootNode = parsed.nodes?.[0];
+      expect(rootNode).toBeDefined();
+      expect(rootNode.absoluteBoundingBox).toBeDefined();
+
+      // top/left are optional; check presence and types if present
+      if (rootNode.left !== undefined) expect(typeof rootNode.left).toBe("number");
+      if (rootNode.top !== undefined) expect(typeof rootNode.top).toBe("number");
     }, 60000);
   });
 });
