@@ -24,7 +24,7 @@
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.ts\"",
     "inspect": "pnpx @modelcontextprotocol/inspector",
-    "prepack": "pnpm build",
+    "prepack": "npm run build",
     "changeset": "changeset add",
     "version": "changeset version && git add -A",
     "beta:start": "changeset pre enter beta",
